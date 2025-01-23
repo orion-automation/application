@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eorion.bo.enhancement.application.mapper.ApplicationMapper">
+
+    <resultMap id="appResultMap" type="com.eorion.bo.enhancement.application.domain.entity.Application">
+        <id property="id" column="id"/>
+        <result property="name" column="NAME_TXT"/>
+        <result property="icon" column="ICON_URL"/>
+        <result property="coeCode" column="COE_CODE_TXT"/>
+<!--        <result property="userGroup" column="USER_GROUP_TXT"/>-->
+<!--        <result property="editGroup" column="EDIT_GROUP_TXT"/>-->
+        <result property="tags" column="TAGS_TXT"/>
+        <result property="owner" column="OWNER_TXT"/>
+        <result property="tenant" column="TENANT_TXT"/>
+        <result property="type" column="TYPE_TXT"/>
+        <result property="category" column="CATEGORY_TXT"/>
+        <result property="configJson" column="CONFIG_TXT" typeHandler="com.eorion.bo.enhancement.application.domain.handler.JsonTypeHandler"/>
+        <result property="appKey" column="KEY_TXT"/>
+        <result property="status" column="STATUS_FG" jdbcType="CHAR"/>
+        <result property="description" column="DESCRIPTION_TXT"/>
+        <result property="versionTag" column="VERSION_TAG_TXT"/>
+        <result property="target" column="TARGET_TXT"/>
+        <result property="targetApplicationId" column="TARGET_APPLICATION_ID"/>
+        <result property="createdTs" column="CREATED_TS"/>
+        <result property="updatedTs" column="UPDATED_TS"/>
+        <result property="createdBy" column="CREATE_BY_TXT"/>
+        <result property="updatedBy" column="UPDATED_BY_TXT"/>
+<!--        <result property="deleteFlag" column="DELETE_FG"/>-->
+    </resultMap>
+
+    <select id="selectApplicationPageList" resultMap="appResultMap" databaseId="postgresql">
+        SELECT * FROM ENHANCEMENT_APPLICATION
+        WHERE DELETE_FG = '0'
+        <if test="query != null and query != ''">
+            <include refid="querySql"/>
+            <if test="query.accessUser != null and query.accessUser != ''">
+                AND (
+                EXISTS (
+                SELECT 1 FROM regexp_split_to_table(access_users_txt, ',') AS au WHERE au IN (#{query.accessUser})
+                )
+                )
+            </if>
+            <if test="query.accessUsersIn != null and query.accessUsersIn.size() > 0">
+                AND (
+                EXISTS (SELECT 1 FROM regexp_split_to_table(access_users_txt, ',') AS aus WHERE aus IN
+                <foreach collection="query.accessUsersIn" item="accessUser" open="(" close=")" separator=",">
+                    #{accessUser}
+                </foreach>
+                ))
+            </if>
+            <if test="query.groups != null and query.groups.size() > 0">
+                AND (
+                EXISTS (SELECT 1 FROM regexp_split_to_table(user_group_txt, ',') AS a WHERE a IN
+                <foreach collection="query.groups" item="group" open="(" close=")" separator=",">
+                    #{group}
+                </foreach>
+                ))
+            </if>
+            <if test="query.editGroups != null and query.editGroups.size() > 0">
+                AND (
+                EXISTS (SELECT 1 FROM regexp_split_to_table(edit_group_txt, ',') AS a WHERE a IN
+                <foreach collection="query.editGroups" item="group" open="(" close=")" separator=",">
+                    #{group}
+                </foreach>
+                ))
+            </if>
+        </if>
+        ORDER BY ID DESC
+        OFFSET #{firstResult} ROWS FETCH NEXT #{maxResults} ROWS ONLY
+    </select>
+
+    <select id="selectApplicationPageList" resultMap="appResultMap" databaseId="h2">
+        SELECT * FROM ENHANCEMENT_APPLICATION
+        WHERE DELETE_FG = '0'
+        <if test="query != null and query != ''">
+            <include refid="querySql"/>
+            <if test="query.accessUser != null and query.accessUser != ''">
+                AND (REGEXP_REPLACE(access_users_txt, concat('(^|,)',#{query.accessUser},'($|,)'), '') != access_users_txt)
+            </if>
+            <if test="query.accessUsersIn != null and query.accessUsersIn.size() > 0">
+                AND (
+                <foreach collection="query.accessUsersIn" item="accessUser" separator="OR">
+                    REGEXP_REPLACE(access_users_txt, concat('(^|,)',#{accessUser},'($|,)'), '') != access_users_txt
+                </foreach>
+                )
+            </if>
+            <if test="query.groups != null and query.groups.size() > 0">
+                AND (
+                <foreach collection="query.groups" item="group" separator="OR">
+                    REGEXP_REPLACE(user_group_txt, concat('(^|,)',#{group},'($|,)'), '') != user_group_txt
+                </foreach>
+                )
+            </if>
+            <if test="query.editGroups != null and query.editGroups.size() > 0">
+                AND (
+                <foreach collection="query.editGroups" item="group" separator="OR">
+                    REGEXP_REPLACE(edit_group_txt, concat('(^|,)',#{group},'($|,)'), '') != edit_group_txt
+                </foreach>
+                )
+            </if>
+        </if>
+        ORDER BY ID DESC
+        OFFSET #{firstResult} ROWS FETCH NEXT #{maxResults} ROWS ONLY
+    </select>
+
+    <select id="selectApplicationPageList" resultMap="appResultMap" databaseId="mysql">
+        SELECT * FROM ENHANCEMENT_APPLICATION
+        WHERE DELETE_FG = '0'
+        <if test="query != null and query != ''">
+            <include refid="querySql"/>
+            <if test="query.accessUser != null and query.accessUser != ''">
+                AND (FIND_IN_SET(#{query.accessUser}, access_users_txt) > 0)
+            </if>
+            <if test="query.accessUsersIn != null and query.accessUsersIn.size() > 0">
+                AND (
+                <foreach collection="query.accessUsersIn" item="accessUser" separator="OR">
+                    FIND_IN_SET(#{accessUser}, access_users_txt) > 0
+                </foreach>
+                )
+            </if>
+            <if test="query.groups != null and query.groups.size() > 0">
+                AND (
+                <foreach collection="query.groups" item="group" open="(" close=")" separator="OR">
+                    FIND_IN_SET(#{group}, user_group_txt) > 0
+                </foreach>
+                )
+            </if>
+            <if test="query.editGroups != null and query.editGroups.size() > 0">
+                AND (
+                <foreach collection="query.editGroups" item="group" open="(" close=")" separator="OR">
+                    FIND_IN_SET(#{group}, edit_group_txt) > 0
+                </foreach>
+                )
+            </if>
+        </if>
+        ORDER BY ID DESC
+        LIMIT #{maxResults} OFFSET #{firstResult}
+    </select>
+
+    <sql id="querySql">
+        <if test="query.tenant != null and query.tenant != ''">
+            AND TENANT_TXT = #{query.tenant}
+        </if>
+        <if test="query.coeCode != null and query.coeCode != ''">
+            AND COE_CODE_TXT = #{query.coeCode}
+        </if>
+        <if test="query.userId != null and query.userId != ''">
+            AND OWNER_TXT = #{query.userId}
+        </if>
+        <if test="query.type != null and query.type != ''">
+            AND TYPE_TXT = #{query.type}
+        </if>
+        <if test="query.category != null and query.category != ''">
+            AND CATEGORY_TXT = #{query.category}
+        </if>
+        <if test="query.appKey != null and query.appKey != ''">
+            AND KEY_TXT = #{query.appKey}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            AND STATUS_FG = #{query.status}
+        </if>
+        <if test="query.versionTag != null and query.versionTag != ''">
+            AND VERSION_TAG_TXT = #{query.versionTag}
+        </if>
+        <if test="query.nameLike != null and query.nameLike != ''">
+            AND NAME_TXT LIKE CONCAT('%',#{query.nameLike} , '%')
+        </if>
+        <if test="query.tagsLike != null and query.tagsLike != ''">
+            AND TAGS_TXT LIKE CONCAT('%',#{query.tagsLike} , '%')
+        </if>
+        <if test="query.appKeysIn != null and query.appKeysIn.size() > 0">
+            AND KEY_TXT IN
+            <foreach collection="query.appKeysIn" item="key" open="(" close=")" separator=",">
+                #{key}
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="selectApplicationCount" resultType="java.lang.Integer" databaseId="postgresql">
+        SELECT COUNT(*) FROM ENHANCEMENT_APPLICATION WHERE DELETE_FG = '0'
+        <if test="query != null and query != ''">
+            <include refid="querySql"/>
+            <if test="query.accessUser != null and query.accessUser != ''">
+                AND (
+                EXISTS (
+                SELECT 1 FROM regexp_split_to_table(access_users_txt, ',') AS au WHERE au IN (#{query.accessUser})
+                )
+                )
+            </if>
+            <if test="query.accessUsersIn != null and query.accessUsersIn.size() > 0">
+                AND (
+                EXISTS (SELECT 1 FROM regexp_split_to_table(access_users_txt, ',') AS aus WHERE aus IN
+                <foreach collection="query.accessUsersIn" item="accessUser" open="(" close=")" separator=",">
+                    #{accessUser}
+                </foreach>
+                ))
+            </if>
+            <if test="query.groups != null and query.groups.size() > 0">
+                AND (
+                EXISTS (SELECT 1 FROM regexp_split_to_table(user_group_txt, ',') AS a WHERE a IN
+                <foreach collection="query.groups" item="group" open="(" close=")" separator=",">
+                    #{group}
+                </foreach>
+                ))
+            </if>
+            <if test="query.editGroups != null and query.editGroups.size() > 0">
+                AND (
+                EXISTS (SELECT 1 FROM regexp_split_to_table(edit_group_txt, ',') AS a WHERE a IN
+                <foreach collection="query.editGroups" item="group" open="(" close=")" separator=",">
+                    #{group}
+                </foreach>
+                ))
+            </if>
+        </if>
+    </select>
+
+    <select id="selectApplicationCount" resultType="java.lang.Integer" databaseId="h2">
+        SELECT COUNT(*) FROM ENHANCEMENT_APPLICATION WHERE DELETE_FG = '0'
+        <if test="query != null and query != ''">
+            <include refid="querySql"/>
+            <if test="query.accessUser != null and query.accessUser != ''">
+                AND (REGEXP_REPLACE(access_users_txt, concat('(^|,)',#{query.accessUser},'($|,)'), '') != access_users_txt)
+            </if>
+            <if test="query.accessUsersIn != null and query.accessUsersIn.size() > 0">
+                AND (
+                <foreach collection="query.accessUsersIn" item="accessUser" separator="OR">
+                    REGEXP_REPLACE(access_users_txt, concat('(^|,)',#{accessUser},'($|,)'), '') != access_users_txt
+                </foreach>
+                )
+            </if>
+            <if test="query.groups != null and query.groups.size() > 0">
+                AND (
+                <foreach collection="query.groups" item="group" separator="OR">
+                    REGEXP_REPLACE(user_group_txt, concat('(^|,)',#{group},'($|,)'), '') != user_group_txt
+                </foreach>
+                )
+            </if>
+            <if test="query.editGroups != null and query.editGroups.size() > 0">
+                AND (
+                <foreach collection="query.editGroups" item="group" separator="OR">
+                    REGEXP_REPLACE(edit_group_txt, concat('(^|,)',#{group},'($|,)'), '') != edit_group_txt
+                </foreach>
+                )
+            </if>
+        </if>
+    </select>
+
+    <select id="selectApplicationCount" resultType="java.lang.Integer" databaseId="mysql">
+        SELECT COUNT(*) FROM ENHANCEMENT_APPLICATION WHERE DELETE_FG = '0'
+        <if test="query != null and query != ''">
+            <include refid="querySql"/>
+            <if test="query.accessUser != null and query.accessUser != ''">
+                AND (FIND_IN_SET(#{query.accessUser}, access_users_txt) > 0)
+            </if>
+            <if test="query.accessUsersIn != null and query.accessUsersIn.size() > 0">
+                AND (
+                <foreach collection="query.accessUsersIn" item="accessUser" separator="OR">
+                    FIND_IN_SET(#{accessUser}, access_users_txt) > 0
+                </foreach>
+                )
+            </if>
+            <if test="query.groups != null and query.groups.size() > 0">
+                AND (
+                <foreach collection="query.groups" item="group" open="(" close=")" separator="OR">
+                    FIND_IN_SET(#{group}, user_group_txt) > 0
+                </foreach>
+                )
+            </if>
+            <if test="query.editGroups != null and query.editGroups.size() > 0">
+                AND (
+                <foreach collection="query.editGroups" item="group" open="(" close=")" separator="OR">
+                    FIND_IN_SET(#{group}, edit_group_txt) > 0
+                </foreach>
+                )
+            </if>
+        </if>
+    </select>
+
+    <select id="selectPdaApplications" resultMap="appResultMap">
+        SELECT * FROM ENHANCEMENT_APPLICATION
+        WHERE DELETE_FG = '0'
+        AND TYPE_TXT = 'duo'
+        AND  CATEGORY_TXT = 'combination'
+        <if test="nameLike != null and nameLike != ''">
+            AND NAME_TXT LIKE CONCAT('%',#{nameLike} , '%')
+        </if>
+        <if test="tenant != null and tenant != ''">
+            AND TENANT_TXT = #{tenant}
+        </if>
+        <include refid="queryPdaApplication"/>
+        ORDER BY UPDATED_TS DESC
+    </select>
+
+    <sql id="queryPdaApplication" databaseId="postgresql">
+        AND(
+        <if test="userId != null and userId != ''">
+            (
+            EXISTS (SELECT 1 FROM regexp_split_to_table(access_users_txt, ',') AS au WHERE au IN (#{userId}))
+            )
+        </if>
+        <if test="groups != null and groups.size() > 0">
+            OR (
+            EXISTS (SELECT 1 FROM regexp_split_to_table(user_group_txt, ',') AS a WHERE a IN
+            <foreach collection="groups" item="group" open="(" close=")" separator=",">
+                #{group}
+            </foreach>
+            ))
+        </if>
+        )
+    </sql>
+
+    <sql id="queryPdaApplication" databaseId="h2">
+        AND(
+        <if test="userId != null and userId != ''">
+            (
+            REGEXP_REPLACE(access_users_txt, concat('(^|,)',#{userId},'($|,)'), '') != access_users_txt
+            )
+        </if>
+        <if test="groups != null and groups.size() > 0">
+            OR (
+            <foreach collection="groups" item="group" separator="OR">
+                REGEXP_REPLACE(user_group_txt, concat('(^|,)',#{group},'($|,)'), '') != user_group_txt
+            </foreach>
+            )
+        </if>
+        )
+    </sql>
+
+    <sql id="queryPdaApplication" databaseId="mysql">
+        AND(
+        <if test="userId != null and userId != ''">
+            (FIND_IN_SET(#{userId}, access_users_txt) > 0)
+        </if>
+        <if test="groups != null and groups.size() > 0">
+            OR (
+            <foreach collection="groups" item="group" open="(" close=")" separator="OR">
+                FIND_IN_SET(#{group}, user_group_txt) > 0
+            </foreach>
+            )
+        </if>
+        )
+    </sql>
+
+</mapper>
