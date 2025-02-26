@@ -20,4 +20,4 @@ logging:
     com.baomidou: debug
     org.mybatis: debug
     org.apache.ibatis: debug
-    com.eorionsolution: debug
+    com.eorion: debug

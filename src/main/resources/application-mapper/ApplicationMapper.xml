@@ -7,8 +7,6 @@
         <result property="name" column="NAME_TXT"/>
         <result property="icon" column="ICON_URL"/>
         <result property="coeCode" column="COE_CODE_TXT"/>
-<!--        <result property="userGroup" column="USER_GROUP_TXT"/>-->
-<!--        <result property="editGroup" column="EDIT_GROUP_TXT"/>-->
         <result property="tags" column="TAGS_TXT"/>
         <result property="owner" column="OWNER_TXT"/>
         <result property="tenant" column="TENANT_TXT"/>
@@ -25,7 +23,6 @@
         <result property="updatedTs" column="UPDATED_TS"/>
         <result property="createdBy" column="CREATE_BY_TXT"/>
         <result property="updatedBy" column="UPDATED_BY_TXT"/>
-<!--        <result property="deleteFlag" column="DELETE_FG"/>-->
     </resultMap>
 
     <select id="selectApplicationPageList" resultMap="appResultMap" databaseId="postgresql">
@@ -137,6 +134,40 @@
         LIMIT #{maxResults} OFFSET #{firstResult}
     </select>
 
+    <select id="selectApplicationPageList" resultMap="appResultMap" databaseId="oracle">
+        SELECT * FROM ENHANCEMENT_APPLICATION
+        WHERE DELETE_FG = '0'
+        <if test="query != null and query != ''">
+            <include refid="querySql"/>
+            <if test="query.accessUser != null and query.accessUser != ''">
+                AND (REGEXP_LIKE(access_users_txt, '(^|,)' || #{query.accessUser} || '(,|$)'))
+            </if>
+            <if test="query.accessUsersIn != null and query.accessUsersIn.size() > 0">
+                AND (
+                <foreach collection="query.accessUsersIn" item="accessUser" separator="OR">
+                    REGEXP_LIKE(access_users_txt, '(^|,)' || #{accessUser} || '(,|$)')
+                </foreach>
+                )
+            </if>
+            <if test="query.groups != null and query.groups.size() > 0">
+                AND (
+                <foreach collection="query.groups" item="group" open="(" close=")" separator="OR">
+                    REGEXP_LIKE(user_group_txt, '(^|,)' || #{group} || '(,|$)')
+                </foreach>
+                )
+            </if>
+            <if test="query.editGroups != null and query.editGroups.size() > 0">
+                AND (
+                <foreach collection="query.editGroups" item="group" open="(" close=")" separator="OR">
+                    REGEXP_LIKE(edit_group_txt, '(^|,)' || #{group} || '(,|$)')
+                </foreach>
+                )
+            </if>
+        </if>
+        ORDER BY ID DESC
+        OFFSET #{firstResult} ROWS FETCH NEXT #{maxResults} ROWS ONLY
+    </select>
+
     <sql id="querySql">
         <if test="query.tenant != null and query.tenant != ''">
             AND TENANT_TXT = #{query.tenant}
@@ -163,10 +194,24 @@
             AND VERSION_TAG_TXT = #{query.versionTag}
         </if>
         <if test="query.nameLike != null and query.nameLike != ''">
-            AND NAME_TXT LIKE CONCAT('%',#{query.nameLike} , '%')
+            <choose>
+                <when test="_databaseId == 'oracle'">
+                    AND NAME_TXT LIKE '%' || #{query.nameLike} || '%'
+                </when>
+                <otherwise>
+                    AND NAME_TXT LIKE CONCAT('%',#{query.nameLike} , '%')
+                </otherwise>
+            </choose>
         </if>
         <if test="query.tagsLike != null and query.tagsLike != ''">
-            AND TAGS_TXT LIKE CONCAT('%',#{query.tagsLike} , '%')
+            <choose>
+                <when test="_databaseId == 'oracle'">
+                    AND TAGS_TXT LIKE '%' || #{query.tagsLike} || '%'
+                </when>
+                <otherwise>
+                    AND TAGS_TXT LIKE CONCAT('%',#{query.tagsLike} , '%')
+                </otherwise>
+            </choose>
         </if>
         <if test="query.appKeysIn != null and query.appKeysIn.size() > 0">
             AND KEY_TXT IN
@@ -276,6 +321,37 @@
         </if>
     </select>
 
+    <select id="selectApplicationCount" resultType="java.lang.Integer" databaseId="oracle">
+        SELECT COUNT(*) FROM ENHANCEMENT_APPLICATION WHERE DELETE_FG = '0'
+        <if test="query != null and query != ''">
+            <include refid="querySql"/>
+            <if test="query.accessUser != null and query.accessUser != ''">
+                AND (REGEXP_LIKE(access_users_txt, '(^|,)'||#{query.accessUser}||'($|,)'))
+            </if>
+            <if test="query.accessUsersIn != null and query.accessUsersIn.size() > 0">
+                AND (
+                <foreach collection="query.accessUsersIn" item="accessUser" separator="OR">
+                    REGEXP_LIKE(access_users_txt, '(^|,)'||#{accessUser}||'($|,)')
+                </foreach>
+                )
+            </if>
+            <if test="query.groups != null and query.groups.size() > 0">
+                AND (
+                <foreach collection="query.groups" item="group" separator="OR">
+                    REGEXP_LIKE(user_group_txt, '(^|,)'||#{group}||'($|,)')
+                </foreach>
+                )
+            </if>
+            <if test="query.editGroups != null and query.editGroups.size() > 0">
+                AND (
+                <foreach collection="query.editGroups" item="group" separator="OR">
+                    REGEXP_LIKE(edit_group_txt, '(^|,)'||#{group}||'($|,)')
+                </foreach>
+                )
+            </if>
+        </if>
+    </select>
+
     <select id="selectPdaApplications" resultMap="appResultMap">
         SELECT * FROM ENHANCEMENT_APPLICATION
         WHERE DELETE_FG = '0'
@@ -335,6 +411,23 @@
             OR (
             <foreach collection="groups" item="group" open="(" close=")" separator="OR">
                 FIND_IN_SET(#{group}, user_group_txt) > 0
+            </foreach>
+            )
+        </if>
+        )
+    </sql>
+
+    <sql id="queryPdaApplication" databaseId="oracle">
+        AND(
+        <if test="userId != null and userId != ''">
+            (
+            REGEXP_LIKE(access_users_txt, '(^|,)'||#{userId}||'($|,)')
+            )
+        </if>
+        <if test="groups != null and groups.size() > 0">
+            OR (
+            <foreach collection="groups" item="group" separator="OR">
+                REGEXP_LIKE(user_group_txt, '(^|,)'||#{group}||'($|,)')
             </foreach>
             )
         </if>

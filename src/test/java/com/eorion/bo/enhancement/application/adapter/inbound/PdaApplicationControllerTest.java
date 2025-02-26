@@ -26,15 +26,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class PdaApplicationControllerTest {
+public class PdaApplicationControllerTest extends BaseControllerTest {
 
     @Autowired
     private ApplicationRepository repository;
     @Autowired
     private IdentityService identityService;
-
-
-    private final InputStreamReader applicationDeleteReader = new InputStreamReader(Objects.requireNonNull(this.getClass().getClassLoader().getResourceAsStream("sql/delete-all.sql")));
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,7 +47,7 @@ public class PdaApplicationControllerTest {
 
     @BeforeEach
     public void clearUp() throws SQLException {
-        executor.batchExecuteSqlFromFile(applicationDeleteReader);
+        executor.batchExecuteSqlFromFile(getApplicationDeleteReader());
         identityService.setAuthenticatedUserId("demo");
     }
 

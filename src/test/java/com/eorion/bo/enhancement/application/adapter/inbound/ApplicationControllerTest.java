@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class ApplicationControllerTest {
+public class ApplicationControllerTest extends BaseControllerTest {
 
     @Autowired
     private ApplicationRepository repository;
@@ -42,9 +42,6 @@ public class ApplicationControllerTest {
 
     @Autowired
     private ObjectMapper mapper;
-
-    private final InputStreamReader applicationDeleteReader = new InputStreamReader(Objects.requireNonNull(this.getClass().getClassLoader().getResourceAsStream("sql/delete-all.sql")));
-
 
     @Autowired
     private MockMvc mockMvc;
@@ -60,7 +57,7 @@ public class ApplicationControllerTest {
 
     @BeforeEach
     public void clearUp() throws SQLException {
-        executor.batchExecuteSqlFromFile(applicationDeleteReader);
+        executor.batchExecuteSqlFromFile(getApplicationDeleteReader());
         identityService.setAuthenticatedUserId("demo");
     }
 
