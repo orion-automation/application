@@ -1,6 +1,5 @@
 package com.eorion.bo.enhancement.application.config;
 
-import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
@@ -22,17 +21,18 @@ public class MyBatisPlusConfig {
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.H2));
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor());
         return interceptor;
     }
 
     @Bean
-    public DatabaseIdProvider databaseIdProvider(){
+    public DatabaseIdProvider databaseIdProvider() {
         VendorDatabaseIdProvider databaseIdProvider = new VendorDatabaseIdProvider();
         Properties properties = new Properties();
         properties.put("PostgreSQL", "postgresql");
         properties.put("MySQL", "mysql");
         properties.put("H2", "h2");
+        properties.put("Oracle", "oracle");
         databaseIdProvider.setProperties(properties);
         return databaseIdProvider;
     }
