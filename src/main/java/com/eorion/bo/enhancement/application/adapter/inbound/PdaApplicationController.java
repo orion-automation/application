@@ -21,7 +21,8 @@ public class PdaApplicationController {
 
     @GetMapping()
     public List<Application> getPdaApplications(@RequestParam(value = "tenant", required = false) String tenant,
-                                                @RequestParam(value = "nameLike", required = false) String nameLike) {
-        return service.getPdaApplications(tenant, nameLike);
+                                                @RequestParam(value = "nameLike", required = false) String nameLike,
+                                                @RequestParam(value = "category", required = false) String category) {
+        return service.getPdaApplications(tenant, nameLike, category);
     }
 }

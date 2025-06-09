@@ -107,6 +107,7 @@ public class PdaApplicationControllerTest extends BaseControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .headers(headers)
                                 .param("nameLike", "yiuwyeiwer")
+                                .param("category", "combination")
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0))
