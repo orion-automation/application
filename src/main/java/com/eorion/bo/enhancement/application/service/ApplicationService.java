@@ -34,10 +34,9 @@ public class ApplicationService {
     }
 
     public void updateApplication(Integer id, Application application) throws UpdateFailedException {
-
         var userId = identityService.getCurrentAuthentication().getUserId();
         var dbApplication = repository.getById(id);
-        if (Objects.nonNull(dbApplication) && Objects.equals(userId, dbApplication.getOwner())) {
+        if (Objects.nonNull(dbApplication)) {
             application.setId(id);
             if (!repository.updateById(application)) {
                 throw new UpdateFailedException();

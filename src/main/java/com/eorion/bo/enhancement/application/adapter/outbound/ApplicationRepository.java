@@ -24,8 +24,8 @@ public class ApplicationRepository extends ServiceImpl<ApplicationMapper, Applic
         return mapper.selectApplicationCount(query);
     }
 
-    public List<Application> selectPdaApplications(String userId, List<String> groups, String tenant, String nameLike) {
+    public List<Application> selectPdaApplications(String userId, List<String> groups, String tenant, String nameLike, String category) {
 
-        return mapper.selectPdaApplications(userId, groups, tenant, nameLike);
+        return mapper.selectPdaApplications(userId, groups, tenant, nameLike, category);
     }
 }

@@ -19,9 +19,9 @@ public class PdaApplicationService {
     }
 
 
-    public List<Application> getPdaApplications(String tenant, String nameLike) {
+    public List<Application> getPdaApplications(String tenant, String nameLike, String category) {
         String loginUserId = identityService.getCurrentAuthentication().getUserId();
         List<String> groups = identityService.getCurrentAuthentication().getGroupIds();
-        return repository.selectPdaApplications(loginUserId, groups, tenant, nameLike);
+        return repository.selectPdaApplications(loginUserId, groups, tenant, nameLike, category);
     }
 }

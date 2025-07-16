@@ -356,7 +356,9 @@
         SELECT * FROM ENHANCEMENT_APPLICATION
         WHERE DELETE_FG = '0'
         AND TYPE_TXT = 'duo'
-        AND  CATEGORY_TXT = 'combination'
+        <if test="category != null and category != ''">
+            AND  CATEGORY_TXT = #{category}
+        </if>
         <if test="nameLike != null and nameLike != ''">
             AND NAME_TXT LIKE CONCAT('%',#{nameLike} , '%')
         </if>

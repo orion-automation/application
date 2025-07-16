@@ -15,5 +15,6 @@ public interface ApplicationMapper extends BaseMapper<Application> {
     Integer selectApplicationCount(@Param("query") QueryApplicationDTO query);
 
     List<Application> selectPdaApplications(@Param("userId") String userId, @Param("groups") List<String> groups,
-                                            @Param("tenant") String tenant, @Param("nameLike") String nameLike);
+                                            @Param("tenant") String tenant, @Param("nameLike") String nameLike,
+                                            @Param("category") String category);
 }
