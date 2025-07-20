@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.eorion.bo.enhancement</groupId>
     <artifactId>application</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <name>application market features</name>
     <description>A spring boot starter of application market features for Camunda Platform 7</description>
     <url>https://www.eorionsolution.com</url>
